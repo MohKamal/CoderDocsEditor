@@ -16,5 +16,12 @@ namespace Showcase\Controllers{
         static function Index(){
             return self::response()->view('App/editor');
         }
+
+        /**
+         * Return the welcome view
+         */
+        static function torrent(){
+            return self::response()->view('App/welcome');
+        }
     }
 }

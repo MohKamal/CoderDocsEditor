@@ -2,6 +2,7 @@
 namespace  Showcase\Models{
     use \Showcase\Framework\Database\Models\BaseModel;
     use \Exception;
+    use \Showcase\Framework\IO\Storage\Storage;
     
     class PreTemplate extends BaseModel
     {
@@ -16,11 +17,8 @@ namespace  Showcase\Models{
 
         public function getHtml(){
             if ($this->file_path) {
-                $file = dirname(__FILE__) . '/../../resources/pre_templates/' . $this->file_path;
-                if (file_exists($file)) {
-                    $this->html = file_get_contents($file);
-                    return $this->html;
-                }
+                $this->html = Storage::folder('pre_templates')->get($this->file_path);
+                return $this->html;
             }
         }
 

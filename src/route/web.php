@@ -9,12 +9,16 @@ $router->get('/', function () {
     HomeController::Index();
 });
 
+$router->get('/torrent', function () {
+    HomeController::torrent();
+});
+
 $router->get('/pre-sections', function () {
-    return \Showcase\Controllers\PreTemplateController::get();
+    return PreTemplateController::get();
 });
 
 $router->get('/pre-elements', function () {
-    return \Showcase\Controllers\PreTemplateController::getElements();
+    return PreTemplateController::getElements();
 });
 
 $router->get('/documentation', function () {
@@ -22,7 +26,7 @@ $router->get('/documentation', function () {
 });
 
 $router->post('/add-sections', function ($request) {
-    return \Showcase\Controllers\SectionController::store($request);
+    return SectionController::store($request);
 });
 
 Auth::routes($router);

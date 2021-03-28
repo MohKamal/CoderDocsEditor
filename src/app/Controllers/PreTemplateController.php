@@ -20,7 +20,7 @@ namespace  Showcase\Controllers{
          * @return View
          */
         static function get(){
-            $sections = DB::model('PreTemplate')->select()->where('type', 'section')->get();
+            $sections = DB::factory()->model('PreTemplate')->select()->where('type', 'section')->get();
             foreach($sections as $section)
                 $section->getHtml();
             return self::response()->json(PreSection::array($sections));
@@ -30,7 +30,7 @@ namespace  Showcase\Controllers{
          * @return View
          */
         static function getElements(){
-            $sections = DB::model('PreTemplate')->select()->where('type', 'element')->get();
+            $sections = DB::factory()->model('PreTemplate')->select()->where('type', 'element')->get();
             foreach($sections as $section)
                 $section->getHtml();
             return self::response()->json(PreSection::array($sections));

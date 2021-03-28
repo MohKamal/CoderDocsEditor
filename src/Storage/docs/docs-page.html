@@ -10,18 +10,21 @@
     
     <meta name="description" content="A simple editer to help you create a code docs">
     <meta name="author" content="Mourchid Mohamed Kamal">
-    <link rel="shortcut icon" href="/images?file=favicon.ico">
-    
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700&display=swap" rel="stylesheet">
+    <link rel="shortcut icon" href="favicon.ico">
+
+	<!-- Google Font -->
+	<link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700&display=swap" rel="stylesheet">
     
     <!-- FontAwesome JS-->
     <script defer src="assets/fontawesome/js/all.min.js"></script>
     
     <!-- Plugins CSS -->
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.2/styles/atom-one-dark.min.css">
+	
+	<!-- bootstrap -->
 	<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-    <!-- Theme CSS -->  
+	
+	<!-- Theme CSS -->  
     <link id="theme-style" rel="stylesheet" href="assets/css/theme.css">
 
 </head> 
@@ -67,13 +70,22 @@
             </div>
 		    <nav id="docs-nav" class="docs-nav navbar">
 			    <ul class="section-items list-unstyled nav flex-column pb-3" id="menu-element">
-					 <li class="nav-item section-title"><a class="nav-link scrollto active" href="#faq-example"><span class="theme-icon-holder mr-2"><i class="fas fa-map-signs"></i></span>FAQ Example</a></li>			    </ul>
+								    </ul>
 
 		    </nav><!--//docs-nav-->
 	    </div><!--//docs-sidebar-->
 	    <div class="docs-content">
 		    <div class="container">
-					<article menu-item class="docs-article" id="faq-example">
+					<article menu-item class="docs-article" id="empty-section">
+    <header class="docs-header">
+        <h1 class="docs-heading">Title</h1>
+        <section class="docs-intro">
+            <p>Empty Section</p>
+        </section>
+        <!--//docs-intro-->
+    </header>
+    <!-- HTML -->
+</article><article menu-item class="docs-article" id="faq-example">
     <header class="docs-header">
         <h1 class="docs-heading">FAQs</h1>
         <section class="docs-intro">
@@ -125,7 +137,9 @@
             nec arcu sed urna gravida lobortis. Donec lectus est, imperdiet eu viverra viverra, ultricies nec urna. </p>
     </section>
     <!--//section-->
-    <!-- HTML -->
+    <div class="alert alert-primary" role="alert">
+    This is a primary alert—check it out!
+</div>
 </article>
 <!--//docs-article-->			    <footer class="footer">
 				    <div class="container text-center py-5">

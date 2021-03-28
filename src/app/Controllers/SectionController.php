@@ -32,16 +32,28 @@ namespace  Showcase\Controllers{
         static function store($request){
             $sections = '';
             $menus = '';
-            foreach($request->getBody()['sections'] as $section){
+            foreach($request->get()['sections'] as $section){
+                $html = '';
+                if(array_key_exists("subElements", $section)){
+                    foreach ($section['subElements'] as $element) {
+                        $html .= $element['html'];
+                    }
+                }
+
+                if(!empty($html)){
+                    $section['html'] = str_replace("<!-- HTML -->", $html, $section['html']);
+                }
                 $sections .= $section['html'];
             }
-            foreach($request->getBody()['menuitems'] as $menu){
+            Log::var_dump($request->get()['menuitems']);
+            foreach($request->get()['menuitems'] as $menu){
                 $menus .= $menu;
             }
            $page = View::get('App/result', [
                             'sections' => $sections,
                             'menus'=> $menus,
                         ]);
+            Log::var_dump($menus);
             Storage::folder("docs")->put('docs-page.html', $page);
             $file = self::Zip();
             $url = Storage::folder('downloads')->url($file);
@@ -50,9 +62,9 @@ namespace  Showcase\Controllers{
 
         static function Zip(){
             // Get real path for our folder
-            $rootPath = basename(__DIR__) . "/../../Storage/docs";
+            $rootPath = basename(__DIR__) . "/../../storage/docs";
             $_file = time() . "_docs.zip";
-            $zipPath = basename(__DIR__) . "/../../Storage/downloads/" . $_file;
+            $zipPath = basename(__DIR__) . "/../../storage/downloads/" . $_file;
 
             // Initialize archive object
             $zip = new \ZipArchive();

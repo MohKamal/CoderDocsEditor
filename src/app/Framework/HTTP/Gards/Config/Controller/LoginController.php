@@ -20,8 +20,9 @@ namespace  Showcase\Controllers{
             if(Auth::check())
                 return self::response()->redirect('/');
 
-            if (Validator::validate($request->getBody(), ['email', 'password'])) {
-                if(!Auth::login($request->getBody()['email'], $request->getBody()['password']))
+            if (Validator::validate($request->get(), ['email', 'password'])) {
+                $remember = $request->get()['remember'] == 'on' ? true : false;
+                if(!Auth::login($request->get()['email'], $request->get()['password'], $remember))
                     return self::response()->unauthorized();
             }
             return self::response()->redirect('/');
@@ -31,10 +32,8 @@ namespace  Showcase\Controllers{
          * Logout user
          */
         static function logout(){
-            if(Auth::logout())
-                return self::response()->redirect('/');
-            
-            return self::response()->unauthorized();
+            Auth::logout();
+            return self::response()->redirect('/');
         }
     }
 }

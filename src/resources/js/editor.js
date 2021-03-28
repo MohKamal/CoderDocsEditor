@@ -45,13 +45,13 @@ $(document).ready(function() {
             };
             preSections.push(pre);
             var item = `<li class="panel panel-primary">
-                                <div class="panel-heading" data-toggle="collapse" data-target="#psection-${v.id}">${v.title}
+                                <div class="panel-heading collapsed" data-toggle="collapse" data-target="#psection-${v.id}">${v.title}
                                     <a class="btn icon-btn btn-success add-section" data-id="${v.id}" style="padding: 0.2rem 0.6rem;" href="javascript:void(0)">
                                         <span class="glyphicon btn-glyphicon glyphicon-plus img-circle text-success">
                                         </span>
                                     </a>
                                 </div>
-                                <div class="panel-body" id="psection-${v.id}">
+                                <div class="panel-body collapse" id="psection-${v.id}">
                                     <div class="card-body">
                                         <div class="row text-center ">
                                             <div class="col-md-12 mt-2" style="font-size:8px;">
@@ -326,7 +326,7 @@ function addToElementList() {
         var item = `<li class="panel panel-primary">
                     <div class="panel-heading" data-toggle="collapse" data-target="#pelement-${v.id}">${v.title}
                     </div>
-                    <div id="pelement-${v.id}" class="panel-body collapse">
+                    <div id="pelement-${v.id}" class="panel-body">
                         <div class="card-body">
                             <div class="row text-center ">
                                 <div class="col-md-12 mt-2" style="font-size:6px;">

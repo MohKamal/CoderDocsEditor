@@ -2,15 +2,17 @@
 
 namespace  Showcase\Framework\HTTP\Routing {
 
+    use \Showcase\Framework\HTTP\Routing\IResponse;
     use \Showcase\Framework\Initializer\VarLoader;
     use \Showcase\Framework\HTTP\Links\URL;
     use \Showcase\Framework\Views\View;
+    use \Showcase\Framework\IO\Debug\Log;
 
     /**
      * Response object
      * To make return response easy
      */
-    class Response
+    class Response implements IResponse
     {
         public function __construct()
         {
@@ -52,7 +54,8 @@ namespace  Showcase\Framework\HTTP\Routing {
          * 
          * @param object data to return
          */
-        function json($data){
+        function json($data, $status_code=200){
+            http_response_code($status_code);
             header('Content-Type: application/json');
             return json_encode($data);
         }

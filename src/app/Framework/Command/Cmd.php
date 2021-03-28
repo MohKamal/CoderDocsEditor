@@ -204,14 +204,21 @@ namespace  Showcase\Framework\Command{
 
             //Migration
             $migration_user = $config_folder . 'Migration/User.php';
+            $migration_remember = $config_folder . 'Migration/rememberMe.php';
             $base_dir = dirname(__FILE__) . '/../../Database/Migrations/';
             $migration_user_newFolder = $base_dir . 'User.php';
+            $migration_remember_newFolder = $base_dir . 'rememberMe.php';
             if (!file_exists($base_dir)) {
                 mkdir($base_dir, 0777, true);
             }
 
             if(!copy($migration_user, $migration_user_newFolder)){
                 Log::console("Can't create User migration", 'error');
+                return false;
+            }            
+            
+            if(!copy($migration_remember, $migration_remember_newFolder)){
+                Log::console("Can't create rememberMe migration", 'error');
                 return false;
             }
 
@@ -264,14 +271,14 @@ namespace  Showcase\Framework\Command{
             $registerView = $config_folder . 'View/register.view.php';
             $mainView = $config_folder . 'View/main.view.php';
 
-            $base_dir = dirname(__FILE__) . '/../../../Views/Auth/';
+            $base_dir = dirname(__FILE__) . '/../../../resources/views/Auth/';
             if (!file_exists($base_dir)) {
                 mkdir($base_dir, 0777, true);
             }
 
             $loginView_newFolder = $base_dir . 'login.view.php';
             $registerView_newFolder = $base_dir . 'register.view.php';
-            $mainView_newFolder = dirname(__FILE__) . '/../../../Views/App/' . 'main.view.php';
+            $mainView_newFolder = dirname(__FILE__) . '/../../../resources/views/App/' . 'main.view.php';
 
             if(!copy($loginView, $loginView_newFolder)){
                 Log::console("Can't create views", 'error');
@@ -288,8 +295,15 @@ namespace  Showcase\Framework\Command{
                 return false;
             }
 
+            //ConfigFile
+            $config_file = $config_folder . "/config.json";
+            $jsonString = file_get_contents($config_file);
+            $data = json_decode($jsonString, true);
+            $data["auth"] = "true";
+            $newJsonString = json_encode($data);
+            file_put_contents($config_file, $newJsonString);
+
             Log::console("Migration, Contollers, Views and Model created! Please run migrate command\n", 'success');
-            Log::console("Add use \Showcase\Framework\HTTP\Gards\Auth; to the route web file (route/web.php)\n", 'success');
             Log::console('Add Auth::routes($router); to the route web file (route/web.php)', 'success');
         }
     }

@@ -5,6 +5,7 @@ namespace Showcase\Framework\Views {
     use \Showcase\Framework\Utils\Utilities;
     use \Showcase\Framework\IO\Debug\Log;
     use \Showcase\Framework\Session\SessionAlert;
+    use \Showcase\Framework\IO\Storage\Storage;
     
     /**
      * Loading and showing views files
@@ -18,6 +19,8 @@ namespace Showcase\Framework\Views {
          */
         static function show($view, array $vars=array()){
             $page = self::printView($view);
+            //sections
+            $page = self::sections($page);
             //check for php code
             $page = self::executeCode($page);
             $page = self::checkVariables($page);
@@ -44,22 +47,22 @@ namespace Showcase\Framework\Views {
             $dir_models = dirname(__FILE__) . '/../../Models';
             if (file_exists($dir_models)) {
                 $models = scandir($dir_models, 1);
-                foreach($models as $model){
+                foreach($models as $model) {
                     $file_parts = pathinfo($model);
-                    if($file_parts['extension'] == "php"){
+                    if($file_parts['extension'] == "php") {
                         $include_models .= "use \Showcase\Models\\" . basename($model,".php") . ";\n";
                     }
                 }
             }
             //create file content
             $page = $includes . "\n" . $include_models . "\n" . self::varsToString($vars) . "\n?>\n" . $page;
-            file_put_contents("_temp.php", $page);
+            Storage::folder('temp')->put("_temp_view.php", $page);
             ob_start();
-            require_once '_temp.php';
+            require_once Storage::folder('temp')->path('_temp_view.php');
             $contents = ob_get_contents();
             ob_end_clean();
             echo $contents;
-            unlink("_temp.php");
+            Storage::folder('temp')->remove('_temp_view.php');
             SessionAlert::clear();
         }
 
@@ -164,12 +167,12 @@ namespace Showcase\Framework\Views {
             $file_parts = pathinfo($view);
             $file = "";
             if(empty($file_parts['extension']))
-                $file = dirname(__FILE__) . '/../../../Views/' . $view . '.view.php';
+                $file = Storage::views()->path($view . '.view.php');
             else{
                 if(Utilities::endsWith($view, '.view.php'))
-                    $file = dirname(__FILE__) . '/../../../Views/' . $view;
+                     $file = Storage::views()->path($view);
                 else
-                    $file = dirname(__FILE__) . '/../../../Views/' . substr_replace($view , 'view.php', strrpos($view , '.') +1);
+                     $file = Storage::views()->path(substr_replace($view , 'view.php', strrpos($view , '.') +1));
             }
 
             //Checking if the file exist
@@ -227,6 +230,47 @@ namespace Showcase\Framework\Views {
         }
 
         /**
+         * This function search for @section to display in the correct part of the html
+         * @param String $page view code
+         * 
+         * @return String view code with no @section inside it
+         */
+        static function sections($page){
+            //Chech for section function
+            $matches = array();
+            preg_match_all('#\@section(.*?)\@endsection#s', $page, $matches);
+            $sections_code = array();
+            foreach ($matches[0] as $subView) {
+                //Replace special characters
+                $section_name = Utilities::getStringBetween($subView, "@section(", ")");
+                $section_name = str_replace('"', '', $section_name);
+
+                $_subView = str_replace('@section("' . $section_name . '")', '', $subView);
+                $_subView = str_replace('@endsection', '', $_subView);
+                if(!key_exists($section_name, $sections_code))
+                    $sections_code[strtolower($section_name)] = "";
+                    
+                $sections_code[strtolower($section_name)] .= $_subView;
+                $page = str_replace($subView, "", $page);
+            }
+
+                $matches = array();
+                preg_match_all('#\@renderSection(.*?)\)#', $page, $matches);
+                foreach ($matches[0] as $subView) {
+                    //Replace special characters
+                    $section_name = str_replace('@renderSection("', '', $subView);
+                    $section_name = str_replace('")', '', $section_name);
+                    $section_name = strtolower($section_name);
+                    if (!empty($sections_code) && key_exists($section_name, $sections_code)) {
+                        $page = str_replace($subView, $sections_code[$section_name], $page);
+                    }else{ //if no code was there remove renderSection
+                        $page = str_replace($subView, "", $page);
+                    }
+                }
+            return $page;
+        }
+
+        /**
          * This function search for @php code to execute
          * inside a view
          * @param String $page view code
@@ -237,7 +281,6 @@ namespace Showcase\Framework\Views {
             //Chech for php function
             $matches = array();
             preg_match_all('#\@php(.*?)\@endphp#s', $page, $matches);
-            $result_to_display = '';
             foreach ($matches[0] as $subView) {
                 //Replace special characters
                 $_subView = str_replace('@php', '<?php ', $subView);
@@ -280,32 +323,55 @@ namespace Showcase\Framework\Views {
             //Chech for foreach or for loop
             $matches = array();
             preg_match_all('#\@foreach(.*?)\@endforeach#s', $page, $matches);
-            foreach ($matches[0] as $subView) {
-                //Replace special characters
-                $search = "#@foreach.*?\n#";
-                preg_match($search, $subView, $match);
-                if (!empty($match)) {
-                    $foreach = str_replace('@foreach', '<?php foreach', $match[0]);
-                    $foreach = str_replace("\n", " { ?>\n", $foreach);
-                    $_subView = str_replace($match[0], $foreach, $subView);
+            $found = false;
+            if(!empty($matches) && !empty($matches[0]))
+                $found = true;
+            while ($found) {
+                foreach ($matches[0] as $subView) {
+                    //Replace special characters
+                    $search = "#@foreach.*?\n#";
+                    preg_match($search, $subView, $match);
+                    if (!empty($match)) {
+                        $foreach = str_replace('@foreach', '<?php foreach', $match[0]);
+                        $foreach = str_replace("\n", " { ?>\n", $foreach);
+                        $_subView = str_replace($match[0], $foreach, $subView);
+                    }
+                    $_subView = str_replace('@endforeach', '<?php } ?>', $_subView);
+                    $page = str_replace($subView, $_subView, $page);
                 }
-                $_subView = str_replace('@endforeach', '<?php } ?>', $_subView);
-                $page = str_replace($subView, $_subView, $page);
+                
+                $matches = array();
+                preg_match_all('#\@foreach(.*?)\@endforeach#s', $page, $matches);
+                $found = false;
+                if(!empty($matches) && !empty($matches[0]))
+                    $found = true;
             }
+
 
             $matches = array();
             preg_match_all('#\@for(.*?)\@endfor#s', $page, $matches);
-            foreach ($matches[0] as $subView) {
-                //Replace special characters
-                $search = "#@for.*?\n#";
-                preg_match($search, $subView, $_match);
-                if (!empty($_match)) {
-                    $for = str_replace('@for', '<?php for', $_match[0]);
-                    $for = str_replace("\n", " { ?>\n", $for);
-                    $_subView = str_replace($_match[0], $for, $subView);
+            $found = false;
+            if(!empty($matches) && !empty($matches[0]))
+                $found = true;
+            while ($found) {
+                foreach ($matches[0] as $subView) {
+                    //Replace special characters
+                    $search = "#@for.*?\n#";
+                    preg_match($search, $subView, $_match);
+                    if (!empty($_match)) {
+                        $for = str_replace('@for', '<?php for', $_match[0]);
+                        $for = str_replace("\n", " { ?>\n", $for);
+                        $_subView = str_replace($_match[0], $for, $subView);
+                    }
+                    $_subView = str_replace('@endfor', '<?php } ?>', $_subView);
+                    $page = str_replace($subView, $_subView, $page);
                 }
-                $_subView = str_replace('@endfor', '<?php } ?>', $_subView);
-                $page = str_replace($subView, $_subView, $page);
+
+                $matches = array();
+                preg_match_all('#\@for(.*?)\@endfor#s', $page, $matches);
+                $found = false;
+                if(!empty($matches) && !empty($matches[0]))
+                    $found = true;
             }
             return $page;
         }
@@ -429,7 +495,7 @@ namespace Showcase\Framework\Views {
          * If the user send an array inside the variables sent to the view
          * this function convert it to string
          */
-        static function arrayToStringVar(array $vars, $use_key=false){
+        static function arrayToStringVar($vars, $use_key=false){
             if(empty($vars))
                 return '';
 
@@ -437,7 +503,6 @@ namespace Showcase\Framework\Views {
                 return '';
             $string = '';
             foreach ($vars as $key => $value) {
-                if ($key != 'migration') {
                     if (is_numeric($value)) {
                         if($use_key)
                             $string .= "'$key' => $value,";
@@ -459,7 +524,6 @@ namespace Showcase\Framework\Views {
                     } elseif (is_object($value)) {
                         $string .= "[" . self::arrayToStringVar(json_decode(json_encode($value), true), true) . "],";
                     }
-                }
             }
             
             return substr($string, 0, -1);
