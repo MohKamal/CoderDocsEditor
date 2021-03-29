@@ -11,10 +11,10 @@
                     <label>App Name</label>
                     </div>
                     <div class="col-md-6">
-                        <input type="text" class="form-control" placeholder="First Part">
+                        <input type="text" class="form-control" id="appname-part-1" placeholder="First Part">
                     </div>
                     <div class="col-md-6">
-                        <input type="text" class="form-control" placeholder="Second Part">
+                        <input type="text" class="form-control" id="appname-part-2" placeholder="Second Part">
                     </div>
                 </div>
             </div>

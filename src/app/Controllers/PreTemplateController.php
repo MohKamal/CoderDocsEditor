@@ -6,6 +6,9 @@ namespace  Showcase\Controllers{
     use \Showcase\Framework\HTTP\Links\URL;
     use \Showcase\Framework\Database\DB;
     use \Showcase\JsonResources\PreSection;
+    use \Showcase\Framework\IO\Storage\Storage;
+    use \Showcase\Framework\Utils\Utilities;
+    use \Showcase\Models\PreTemplate;
 
     class PreTemplateController extends BaseController{
 
@@ -46,6 +49,33 @@ namespace  Showcase\Controllers{
                     return self::response()->redirect('/'); 
             }
             return self::response()->redirect('/contact'); 
+        }
+
+        /**
+         * Scan all files and add them to database
+         */
+        static function scanFiles() {
+            $files = Storage::folder('pre_templates')->scandir();
+            foreach($files as $file) {
+                $save = false;
+                $pre = new PreTemplate();
+                if(Utilities::endsWith($file, '.element.html')) {
+                    $pre->type = 'element';
+                    $pre->name = ucwords(str_replace('_', ' ', str_replace('.element.html', '', $file)));
+                    $save = true;
+                }else if(Utilities::endsWith($file, '.section.html')) {
+                    $pre->type = 'section';
+                    $pre->name = ucwords(str_replace('_', ' ', str_replace('.section.html', '', $file)));
+                    $save = true;
+                }
+                if($save) {
+                    $pre->file_path = $file;
+                    $exist = DB::factory()->model('PreTemplate')->select()->where('type', $pre->type)->where('file_path', $pre->file_path)->first();
+                    if(is_null($exist))
+                        $pre->save();
+                }
+            }
+            return self::response()->redirect('/');
         }
     }
 }

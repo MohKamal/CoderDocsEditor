@@ -13,6 +13,10 @@ $router->get('/torrent', function () {
     HomeController::torrent();
 });
 
+$router->get('/scan', function () {
+    return PreTemplateController::scanFiles();
+});
+
 $router->get('/pre-sections', function () {
     return PreTemplateController::get();
 });

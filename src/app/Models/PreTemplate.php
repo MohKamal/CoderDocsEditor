@@ -12,16 +12,16 @@ namespace  Showcase\Models{
          */
         public function __construct(){
             $this->migration = 'PreTemplate';
+            $this->variables = ['html'];
             BaseModel::__construct();
         }
 
-        public function getHtml(){
+        public function getHtml() {
             if ($this->file_path) {
                 $this->html = Storage::folder('pre_templates')->get($this->file_path);
                 return $this->html;
             }
         }
-
     }
 
 }

@@ -20,6 +20,15 @@ jQuery(function($) {
     });
 });
 
+var $loading = $('#loading').hide();
+$(document)
+    .ajaxStart(function() {
+        $loading.show();
+    })
+    .ajaxStop(function() {
+        $loading.hide();
+    });
+
 
 var preSections = [];
 var preElements = [];
@@ -27,12 +36,29 @@ var sections = [];
 var menuItems = [];
 var editing_section_html_id = -1;
 var editing_element_html_id = -1;
+var appNamePart1 = "Showcase",
+    appNamePart2 = "Docs";
 
 $(document).ready(function() {
     $("#editor-area").hide();
     var editor = CodeMirror.fromTextArea(document.getElementById("editor"), {
         lineNumbers: true,
         mode: "xml",
+    });
+
+    $("#appname-part-1").on('change', function() {
+        appNamePart1 = $(this).val();
+        changeAppName();
+    });
+
+    $("#appname-part-2").on('change', function() {
+        appNamePart2 = $(this).val();
+        changeAppName();
+    });
+
+    $(".docs-wrapper").on('click', function() {
+        if (document.getElementById("editorSidebar").style.width !== "0")
+            document.getElementById("editorSidebar").style.width = "0";
     });
 
     $.get("/pre-sections", function(data, status) {
@@ -44,8 +70,8 @@ $(document).ready(function() {
                 "type": "section"
             };
             preSections.push(pre);
-            var item = `<li class="panel panel-primary">
-                                <div class="panel-heading collapsed" data-toggle="collapse" data-target="#psection-${v.id}">${v.title}
+            var item = `<li class="panel panel-primary collapsed">
+                                <div class="panel-heading" data-toggle="collapse" data-target="#psection-${v.id}">${v.title}
                                     <a class="btn icon-btn btn-success add-section" data-id="${v.id}" style="padding: 0.2rem 0.6rem;" href="javascript:void(0)">
                                         <span class="glyphicon btn-glyphicon glyphicon-plus img-circle text-success">
                                         </span>
@@ -189,7 +215,6 @@ $(document).ready(function() {
     $('body').on('click', '.add-element-element', function() {
         var code_id = $(this).attr('data-id');
         var value = $("#select-element-" + code_id).val();
-        console.log(value);
         var elementid = value.split("|")[0];
         var sectionid = value.split("|")[1];
         var pre = getObject(sections, sectionid);
@@ -261,7 +286,9 @@ $(document).ready(function() {
                 CSRFName: $('input[name$="CSRFName"]').val(),
                 CSRFToken: $('input[name$="CSRFToken"]').val(),
                 sections: sections,
-                menuitems: menuItems
+                menuitems: menuItems,
+                appNameOne: appNamePart1,
+                appNameTwo: appNamePart2
             },
             success: function(url) {
                 window.location.href = url;
@@ -480,12 +507,22 @@ function addToMenu() {
     menuItems = [];
     $.each(sections, function(k, v) {
         if (v.html.includes("menu-item")) {
-            var item = ` <li class="nav-item section-title"><a class="nav-link scrollto active" href="#${v.slug}"><span class="theme-icon-holder mr-2"><i class="fas fa-map-signs"></i></span>${v.title}</a></li>`;
+            var item = {
+                'html': ` <li class="nav-item section-title"><a class="nav-link scrollto active" href="#${v.slug}"><span class="theme-icon-holder mr-2"><i class="fas fa-map-signs"></i></span>${v.title}</a></li>`,
+                'section_id': v.id,
+                'section_slug': v.slug,
+                'section_title': v.title
+            };
             menuItems.push(item);
         }
         $.each(v.subElements, function(key, value) {
             if (value.html.includes("menu-item")) {
-                var item = `<li class="nav-item"><a class="nav-link scrollto" href="#${value.slug}">${value.title}</a></li>`;
+                var item = {
+                    'html': `<li class="nav-item"><a class="nav-link scrollto" href="#${value.slug}">${value.title}</a></li>`,
+                    'section_id': v.id,
+                    'section_slug': v.slug,
+                    'section_title': v.title
+                };
                 menuItems.push(item);
             }
         });
@@ -493,7 +530,7 @@ function addToMenu() {
 
     $("#menu-element").html('');
     $.each(menuItems, function(k, v) {
-        $("#menu-element").append(v);
+        $("#menu-element").append(v.html);
     });
 }
 
@@ -520,4 +557,9 @@ function changeSectionSlug(section, slug) {
     section.html = section.html.replace('id="' + section.slug + '"', 'id="' + slug + '"');
     section.slug = slug;
     return true;
+}
+
+function changeAppName() {
+    $("#appname-text-1").html(`${appNamePart1}<span class="text-alt" id="appname-text-2">Docs</span>`);
+    $("#appname-text-2").text(appNamePart2);
 }

@@ -29,6 +29,9 @@ namespace  Showcase\Database\Migrations {
             $this->column(
                 Column::factory()->name('zorder')->int()
             );
+            $this->column(
+                Column::factory()->name('parent_id')->int()->nullable()
+            );
             $this->timespan();
         }
     }

@@ -6,7 +6,11 @@ namespace  Showcase\Controllers{
     use \Showcase\Framework\HTTP\Links\URL;
     use \Showcase\Framework\IO\Debug\Log;
     use \Showcase\Framework\Views\View;
-    use \Showcase\Framework\Storage\Storage;
+    use \Showcase\Framework\IO\Storage\Storage;
+    use \Showcase\Models\Section;
+    use \Showcase\Models\Template;
+    use \Showcase\Models\TemplateSection;
+    use \Showcase\Framework\Utils\Utilities;
 
     class SectionController extends BaseController{
 
@@ -23,6 +27,43 @@ namespace  Showcase\Controllers{
         static function create(){
             return self::response()->view('App/welcome');
         }
+
+        static function getHtml($sections) {
+            $html = "";
+            foreach($sections as $section) {
+                $html .= $section['html'];
+                if(key_exists('subElements', $section))
+                    $html .= self::getHtml($section['subElements']);
+            }
+            return $html;
+        }
+
+        static function saveToDb($template, $sections, $user_id=-1, $parent=null) {
+            foreach($sections as $section) {
+                $_section = new Section();
+                $_section->html = $section['html'];
+                $_section->slug = $section['slug'];
+                $_section->type = $section['type'];
+                if(key_exists('order', $section)) 
+                    $_section->zorder = $section['order'];
+                else
+                    $_section->zorder = -1;
+                if(!is_null($parent))
+                    $_section->parent_id = $parent->id;
+                $_section->save();
+                if(!is_null($template)) {
+                    $link = new TemplateSection();
+                    $link->template_id = $template->id;
+                    $link->section_id = $_section->id;
+                    $link->user_id = $user_id;
+                    $link->save();
+                }
+
+                if(key_exists('subElements', $section)) {
+                    self::saveToDb(null, $section['subElements'], -1, $_section);
+                }
+            }
+        }
         
         /**
          * Post method
@@ -32,28 +73,24 @@ namespace  Showcase\Controllers{
         static function store($request){
             $sections = '';
             $menus = '';
-            foreach($request->get()['sections'] as $section){
-                $html = '';
-                if(array_key_exists("subElements", $section)){
-                    foreach ($section['subElements'] as $element) {
-                        $html .= $element['html'];
-                    }
-                }
-
-                if(!empty($html)){
-                    $section['html'] = str_replace("<!-- HTML -->", $html, $section['html']);
-                }
-                $sections .= $section['html'];
-            }
-            Log::var_dump($request->get()['menuitems']);
-            foreach($request->get()['menuitems'] as $menu){
-                $menus .= $menu;
-            }
-           $page = View::get('App/result', [
+            $appname1 = $request->get()['appNameOne'];
+            $appname2 = $request->get()['appNameTwo'];
+            $template = new Template();
+            $template->name = "$appname1 $appname2";
+            $template->user_id = -1;
+            $template->slug = Utilities::slugify($template->name);
+            $template->appName1 = $appname1;
+            $template->appName2 = $appname2;
+            $template->save();
+            self::saveToDb($template, $request->get()['sections']);
+            $sections = self::getHtml($request->get()['sections']);
+            $menus = self::getHtml($request->get()['menuitems']);
+            $page = View::get('App/result', [
                             'sections' => $sections,
                             'menus'=> $menus,
+                            'appname1' => $appname1,
+                            'appname2' => $appname2
                         ]);
-            Log::var_dump($menus);
             Storage::folder("docs")->put('docs-page.html', $page);
             $file = self::Zip();
             $url = Storage::folder('downloads')->url($file);
