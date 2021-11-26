@@ -21,7 +21,7 @@ namespace  Showcase\Database\Migrations {
                 Column::factory()->name('title')->string()
             );
             $this->column(
-                Column::factory()->name('slug')->string()->unique()
+                Column::factory()->name('slug')->string()
             );
             $this->column(
                 Column::factory()->name('type')->string()->default("section")

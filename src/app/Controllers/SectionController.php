@@ -102,7 +102,6 @@ namespace  Showcase\Controllers{
             $rootPath = basename(__DIR__) . "/../../storage/docs";
             $_file = time() . "_docs.zip";
             $zipPath = basename(__DIR__) . "/../../storage/downloads/" . $_file;
-
             // Initialize archive object
             $zip = new \ZipArchive();
             $zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);

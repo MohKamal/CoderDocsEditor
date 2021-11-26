@@ -9,10 +9,6 @@ $router->get('/', function () {
     HomeController::Index();
 });
 
-$router->get('/torrent', function () {
-    HomeController::torrent();
-});
-
 $router->get('/scan', function () {
     return PreTemplateController::scanFiles();
 });
