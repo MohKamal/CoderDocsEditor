@@ -27,7 +27,7 @@ namespace  Showcase\Database\Migrations {
                 Column::factory()->name('user_id')->int()
             );
             $this->column(
-                Column::factory()->name('slug')->string()->unique()
+                Column::factory()->name('slug')->string()
             );
             $this->timespan();
         }

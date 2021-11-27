@@ -99,9 +99,11 @@ namespace  Showcase\Controllers{
 
         static function Zip(){
             // Get real path for our folder
-            $rootPath = basename(__DIR__) . "/../../storage/docs";
+            $rootPath = dirname(__FILE__);
+            $rootPath = str_replace('app/Controllers', '', $rootPath);
+            $rootPath = $rootPath . 'storage/docs';
             $_file = time() . "_docs.zip";
-            $zipPath = basename(__DIR__) . "/../../storage/downloads/" . $_file;
+            $zipPath = dirname(__FILE__) . "/../../storage/downloads/" . $_file;
             // Initialize archive object
             $zip = new \ZipArchive();
             $zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
